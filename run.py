@@ -9,50 +9,83 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
-# Add current directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-try:
-    from main import FacultyMonitoringSystem
-except ImportError as e:
-    print(f"Error importing required modules: {e}")
-    print("Please make sure all required packages are installed:")
-    print("pip install opencv-python numpy Pillow")
-    sys.exit(1)
-
 def check_dependencies():
-    """Check if all required dependencies are available"""
-    try:
-        import cv2
-        import numpy as np
-        from PIL import Image
-        return True
-    except ImportError as e:
-        messagebox.showerror(
-            "Missing Dependencies", 
-            f"Required package not found: {e}\n\n"
-            "Please install required packages:\n"
-            "pip install opencv-python numpy Pillow"
-        )
+    """Check if all required dependencies are installed"""
+    required_packages = [
+        'cv2',
+        'numpy', 
+        'PIL',
+        'ultralytics',
+        'face_recognition'
+    ]
+    
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            missing_packages.append(package)
+    
+    if missing_packages:
+        error_msg = f"""
+Missing required packages: {', '.join(missing_packages)}
+
+Please install them using:
+pip install opencv-python numpy Pillow ultralytics face-recognition dlib
+
+Note: You may need to install additional system dependencies for dlib and face_recognition.
+        """
+        print(error_msg)
+        
+        # Show GUI error if possible
+        try:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("Missing Dependencies", error_msg)
+            root.destroy()
+        except:
+            pass
+            
         return False
+    
+    return True
 
 def main():
     """Main function to start the application"""
-    print("Starting Faculty Presence Monitoring & Alert System...")
+    print("Faculty Presence Monitoring & Alert System")
+    print("=" * 50)
     
     # Check dependencies
     if not check_dependencies():
-        return
-        
+        print("Please install missing dependencies and try again.")
+        sys.exit(1)
+    
     try:
-        # Create and run the application
-        app = FacultyMonitoringSystem()
-        print("Application initialized successfully")
-        app.run()
+        # Import main application
+        from main import main as run_app
+        
+        print("Starting application...")
+        run_app()
+        
+    except KeyboardInterrupt:
+        print("\nApplication interrupted by user")
+        sys.exit(0)
         
     except Exception as e:
-        print(f"Error starting application: {e}")
-        messagebox.showerror("Application Error", f"Failed to start application:\n{e}")
+        error_msg = f"Error starting application: {e}"
+        print(error_msg)
+        
+        # Show GUI error if possible
+        try:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("Application Error", error_msg)
+            root.destroy()
+        except:
+            pass
+            
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
